@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COUNTER • Ticket Station</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@700&amp;display=swap');
+
+        :root {
+            --primary: #1e40af;
+        }
+
+        .tail-container {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+
+        .logo-font {
+            font-family: 'Playfair Display', sans-serif;
+        }
+
+        .ticket {
+            width: 90mm;
+            height: 55mm;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            border: 3px solid #1e40af;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px -15px rgb(30 64 175 / 0.5);
+            overflow: hidden;
+            position: relative;
+            page-break-inside: avoid;
+        }
+
+        .ticket::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 18px;
+            background: repeating-linear-gradient(
+                45deg,
+                #1e40af,
+                #1e40af 10px,
+                #f1f5f9 10px,
+                #f1f5f9 20px
+            );
+        }
+
+        .ticket-cut {
+            border-top: 2px dashed #64748b;
+            margin-top: 8px;
+            padding-top: 8px;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable, #printable * {
+                visibility: visible;
+            }
+            #printable {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .ticket {
+                box-shadow: none;
+                border: 2px solid #000;
+                margin: 8mm 0;
+            }
+        }
+
+        .qr-container {
+            width: 32px;
+            height: 32px;
+        }
+    </style>
+</head>
+<body class="tail-container bg-zinc-950 text-zinc-200 min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- SIDEBAR -->
+        <div class="w-96 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+            <!-- header -->
+            <div class="px-8 py-6 border-b border-zinc-800 flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold logo-font shadow-inner">T</div>
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tighter logo-font text-white">COUNTER</h1>
+                    <p class="text-blue-400 text-xs tracking-[3px] uppercase font-mono -mt-1">Ticket Station</p>
+                </div>
+            </div>
+
+            <div class="flex-1 p-8 space-y-8 overflow-auto">
+                <!-- Event Info -->
+                <div>
+                    <label class="block text-zinc-400 text-xs font-medium mb-2 tracking-widest">EVENT</label>
+                    <input id="event-name" value="xAI India Summit 2026" 
+                           class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-lg focus:outline-none focus:border-blue-500">
+                    <div class="grid grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label class="block text-zinc-400 text-xs font-medium mb-2">DATE</label>
+                            <input id="event-date" type="date" value="2026-03-20"
+                                   class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-zinc-400 text-xs font-medium mb-2">VENUE</label>
+                            <input id="event-venue" value="Yashobhoomi, Delhi" 
+                                   class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticket Type -->
+                <div>
+                    <label class="block text-zinc-400 text-xs font-medium mb-3 tracking-widest">TICKET CATEGORY</label>
+                    <div class="grid grid-cols-3 gap-3" id="type-buttons">
+                        <!-- populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Price Display -->
+                <div class="bg-zinc-950 border border-zinc-700 rounded-3xl p-6">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-zinc-400 text-sm">Base Price</span>
+                        <span id="base-price" class="text-4xl font-semibold text-white">₹15,000</span>
+                    </div>
+                    <div id="type-badge" class="inline-flex items-center gap-2 mt-4 px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-2xl">
+                        <span id="selected-type">PRIME</span>
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div>
+                    <label class="block text-zinc-400 text-xs font-medium mb-2 tracking-widest">NUMBER OF TICKETS</label>
+                    <div class="flex gap-2 flex-wrap" id="qty-buttons">
+                        <!-- populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Discount -->
+                <div>
+                    <label class="block text-zinc-400 text-xs font-medium mb-3 tracking-widest">DISCOUNT</label>
+                    <div class="flex gap-3">
+                        <select id="discount-type" 
+                                class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 flex-1 focus:outline-none focus:border-blue-500 text-sm">
+                            <option value="none">No Discount</option>
+                            <option value="flat">Flat Amount (₹)</option>
+                            <option value="percent">Percentage (%)</option>
+                        </select>
+                        <input id="discount-value" type="number" placeholder="0" 
+                               class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 w-32 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="bg-zinc-950 border border-zinc-700 rounded-3xl p-6 space-y-4 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-zinc-400">Subtotal</span>
+                        <span id="subtotal" class="font-medium">₹15,000</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-zinc-400">Discount</span>
+                        <span id="discount-amount" class="font-medium text-emerald-400">- ₹0</span>
+                    </div>
+                    <div class="h-px bg-zinc-800 my-2"></div>
+                    <div class="flex justify-between text-lg font-semibold">
+                        <span class="text-zinc-400">FINAL PAYABLE</span>
+                        <span id="final-amount" class="text-emerald-400">₹15,000</span>
+                    </div>
+                    <div class="text-[10px] text-zinc-500 text-center mt-4">for <span id="qty-summary">1</span> ticket(s)</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="p-8 border-t border-zinc-800 bg-zinc-900 space-y-4">
+                <button onclick="generateTickets()" 
+                        class="w-full bg-white hover:bg-zinc-100 text-zinc-900 font-semibold py-6 rounded-3xl flex items-center justify-center gap-3 text-lg shadow-lg shadow-blue-500/30 transition-all active:scale-95">
+                    <i class="fas fa-ticket"></i>
+                    GENERATE &amp; PREVIEW
+                </button>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="printTickets()" 
+                            class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 py-5 rounded-3xl font-medium flex items-center justify-center gap-2">
+                        <i class="fas fa-print"></i>
+                        PRINT
+                    </button>
+                    <button onclick="downloadPDF()" 
+                            class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 py-5 rounded-3xl font-medium flex items-center justify-center gap-2">
+                        <i class="fas fa-file-pdf"></i>
+                        PDF
+                    </button>
+                </div>
+
+                <button onclick="clearAll()" 
+                        class="w-full text-red-400 hover:text-red-500 flex items-center justify-center gap-2 py-4 text-sm font-medium">
+                    <i class="fas fa-trash"></i>
+                    CLEAR SESSION
+                </button>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 flex flex-col">
+            <!-- top bar -->
+            <div class="h-16 bg-zinc-900 border-b border-zinc-800 px-10 flex items-center justify-between">
+                <div class="flex items-center gap-8 text-sm">
+                    <div class="flex items-center gap-2 text-emerald-400">
+                        <div class="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <span class="font-medium">LIVE • COUNTER #03</span>
+                    </div>
+                    <div class="text-zinc-500">Staff: <span class="text-white">Rahul Sharma</span></div>
+                </div>
+                <div class="flex items-center gap-6 text-zinc-400">
+                    <button onclick="window.location.reload()" class="hover:text-white transition-colors">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <a href="verify.html" target="_blank" 
+                       class="bg-zinc-800 hover:bg-zinc-700 px-6 py-2 rounded-2xl text-xs font-mono tracking-widest flex items-center gap-2">
+                        <i class="fas fa-qrcode"></i>
+                        VERIFICATION MODE
+                    </a>
+                </div>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="flex-1 p-10 overflow-auto bg-zinc-950" id="preview-area">
+                <div class="max-w-5xl mx-auto">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-2xl font-semibold">Ticket Preview</h2>
+                        <div id="generated-count" class="text-emerald-400 font-mono text-sm bg-zinc-900 px-6 py-2 rounded-3xl">
+                            0 tickets generated
+                        </div>
+                    </div>
+
+                    <div id="tickets-preview" class="grid grid-cols-3 gap-6">
+                        <!-- JS populated small tickets -->
+                    </div>
+
+                    <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center py-20">
+                        <div class="w-24 h-24 bg-zinc-900 rounded-3xl flex items-center justify-center mb-6">
+                            <i class="fas fa-ticket text-5xl text-zinc-700"></i>
+                        </div>
+                        <p class="text-zinc-500 text-xl">No tickets generated yet</p>
+                        <p class="text-zinc-600 mt-2 max-w-xs">Select category, quantity and discount then click GENERATE</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="h-14 bg-zinc-900 border-t border-zinc-800 px-10 flex items-center text-xs font-mono text-zinc-500">
+                <div>© 2026 xAI Events • All tickets issued are non-transferable • GST 18% included</div>
+                <div class="flex-1"></div>
+                <div id="last-generated" class="text-emerald-400">—</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRINTABLE AREA (hidden) -->
+    <div id="printable" class="hidden fixed inset-0 bg-white z-50 overflow-auto p-8">
+        <div id="print-header" class="max-w-[210mm] mx-auto mb-8 flex justify-between items-center border-b pb-6">
+            <div>
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-4xl font-black logo-font">T</div>
+                    <div>
+                        <div class="text-3xl font-bold text-zinc-900 logo-font">xAI India Summit 2026</div>
+                        <div class="text-zinc-600">Official Entry Tickets</div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-4xl font-bold text-blue-600" id="print-total">₹15,000</div>
+                <div class="text-xs text-zinc-500">TOTAL COLLECTED</div>
+            </div>
+        </div>
+
+        <div id="tickets-container" class="max-w-[210mm] mx-auto grid grid-cols-2 gap-x-8 gap-y-10 print-mode">
+            <!-- JS injected full tickets -->
+        </div>
+
+        <div class="text-center text-zinc-400 text-xs mt-12 print:hidden">
+            Printed on <span id="print-date"></span> • For internal use only
+        </div>
+    </div>
+
+    <script>
+        // Tailwind script already loaded via CDN
+
+        let currentType = "PRIME"
+        let currentPrice = 15000
+        let currentQty = 1
+        let discountType = "none"
+        let discountVal = 0
+        let generatedTickets = []
+
+        const ticketTypes = {
+            PRIME: { name: "PRIME", price: 15000, color: "bg-blue-600" },
+            PLUS:  { name: "PLUS",  price: 11000, color: "bg-emerald-600" },
+            ECONO: { name: "ECONO", price: 2500,  color: "bg-amber-600" }
+        }
+
+        function initTypeButtons() {
+            const container = document.getElementById("type-buttons")
+            container.innerHTML = ""
+            Object.keys(ticketTypes).forEach(key => {
+                const btn = document.createElement("button")
+                btn.className = `type-btn flex flex-col items-center justify-center h-28 rounded-3xl border-2 transition-all ${key === currentType ? 'border-white bg-zinc-800' : 'border-transparent bg-zinc-800 hover:border-zinc-700'}`
+                btn.innerHTML = `
+                    <div class="${ticketTypes[key].color} w-11 h-11 rounded-2xl flex items-center justify-center text-white text-xl font-bold mb-3">${key[0]}</div>
+                    <div class="text-sm font-semibold">${key}</div>
+                    <div class="text-emerald-400 font-mono text-xs">₹${ticketTypes[key].price.toLocaleString('en-IN')}</div>
+                `
+                btn.onclick = () => {
+                    currentType = key
+                    currentPrice = ticketTypes[key].price
+                    document.getElementById("base-price").textContent = `₹${currentPrice.toLocaleString('en-IN')}`
+                    document.getElementById("selected-type").textContent = key
+                    document.querySelectorAll(".type-btn").forEach(b => {
+                        b.classList.toggle("border-white", b === btn)
+                        b.classList.toggle("bg-zinc-800", b === btn)
+                    })
+                    calculateSummary()
+                }
+                container.appendChild(btn)
+            })
+        }
+
+        function initQtyButtons() {
+            const container = document.getElementById("qty-buttons")
+            container.innerHTML = ""
+            const qtys = [1,2,3,4,5,10,20]
+            qtys.forEach(q => {
+                const btn = document.createElement("button")
+                btn.className = `qty-btn px-7 py-5 rounded-3xl font-mono text-xl transition-all ${q === currentQty ? 'bg-white text-zinc-900 shadow-lg' : 'bg-zinc-800 hover:bg-zinc-700'}`
+                btn.textContent = q
+                btn.onclick = () => {
+                    currentQty = q
+                    document.querySelectorAll(".qty-btn").forEach(b => b.classList.toggle("bg-white", parseInt(b.textContent) === q))
+                    document.querySelectorAll(".qty-btn").forEach(b => b.classList.toggle("text-zinc-900", parseInt(b.textContent) === q))
+                    calculateSummary()
+                }
+                container.appendChild(btn)
+            })
+        }
+
+        function calculateSummary() {
+            const subtotal = currentPrice * currentQty
+            let discount = 0
+
+            if (discountType === "flat") {
+                discount = Math.min(parseFloat(document.getElementById("discount-value").value) || 0, subtotal)
+            } else if (discountType === "percent") {
+                const perc = Math.min(parseFloat(document.getElementById("discount-value").value) || 0, 100)
+                discount = Math.round(subtotal * perc / 100)
+            }
+
+            const final = subtotal - discount
+
+            document.getElementById("subtotal").textContent = `₹${subtotal.toLocaleString('en-IN')}`
+            document.getElementById("discount-amount").textContent = `- ₹${discount.toLocaleString('en-IN')}`
+            document.getElementById("final-amount").textContent = `₹${final.toLocaleString('en-IN')}`
+            document.getElementById("qty-summary").textContent = currentQty
+        }
+
+        function getDiscountLabel() {
+            if (discountType === "none") return ""
+            const val = parseFloat(document.getElementById("discount-value").value) || 0
+            if (discountType === "flat") return `₹${val} OFF`
+            return `${val}% OFF`
+        }
+
+        function generateTicketHTML(ticket, isPreview = false) {
+            const scale = isPreview ? "scale-75 origin-top-left" : ""
+            const sizeClass = isPreview ? "w-[280px] h-[170px]" : "ticket"
+
+            return `
+                <div class="${sizeClass} ${scale} flex flex-col relative overflow-hidden">
+                    <div class="px-6 py-4 flex-1 flex flex-col">
+                        <!-- header -->
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="text-[10px] font-mono tracking-widest text-zinc-500">${ticket.event}</div>
+                                <div class="text-lg font-bold text-zinc-900 logo-font leading-none">${ticket.type}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-3xl font-bold text-blue-600">₹${ticket.finalPrice.toLocaleString('en-IN')}</div>
+                                ${ticket.discountLabel ? `<div class="text-[10px] text-emerald-600 font-medium">${ticket.discountLabel}</div>` : ''}
+                            </div>
+                        </div>
+
+                        <!-- venue & date -->
+                        <div class="mt-auto text-[10px] text-zinc-600">
+                            ${ticket.venue} • ${ticket.date}
+                        </div>
+
+                        <!-- bottom bar -->
+                        <div class="ticket-cut flex items-center justify-between text-[10px]">
+                            <div>
+                                <div class="font-mono text-zinc-500">ID</div>
+                                <div class="font-bold text-zinc-900">${ticket.id}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-mono text-zinc-500">${ticket.serial}</div>
+                                <div class="text-emerald-600 font-medium">${ticket.warning ? 'SINGLE ENTRY' : ''}</div>
+                            </div>
+                            <div class="qr-container">
+                                <div id="qr-${ticket.id}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- warning strip -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-red-600 text-white text-[9px] font-bold py-1 px-6 text-center tracking-widest">
+                        VALID FOR SINGLE ENTRY ONLY • DUPLICATES REJECTED
+                    </div>
+                </div>
+            `
+        }
+
+        function createQR(elementId, data) {
+            const container = document.getElementById(elementId)
+            if (!container) return
+            container.innerHTML = ""
+            new QRCode(container, {
+                text: data,
+                width: 64,
+                height: 64,
+                colorDark : "#000000",
+                colorLight : "#f8fafc",
+                correctLevel : QRCode.CorrectLevel.H
+            })
+        }
+
+        function generateTickets() {
+            const eventName = document.getElementById("event-name").value
+            const eventDate = document.getElementById("event-date").value
+            const venue = document.getElementById("event-venue").value
+
+            const subtotal = currentPrice * currentQty
+            let discountAmount = 0
+            let discountLabel = ""
+
+            if (discountType === "flat") {
+                discountAmount = parseFloat(document.getElementById("discount-value").value) || 0
+                discountLabel = `₹${discountAmount} OFF`
+            } else if (discountType === "percent") {
+                const perc = parseFloat(document.getElementById("discount-value").value) || 0
+                discountAmount = Math.round(subtotal * perc / 100)
+                discountLabel = `${perc}% OFF`
+            }
+
+            const finalTotal = subtotal - discountAmount
+            const finalPerTicket = Math.round(finalTotal / currentQty)
+
+            generatedTickets = []
+
+            const now = new Date()
+            const dateStr = now.toISOString().slice(0,10).replace(/-/g,'')
+            let seq = parseInt(localStorage.getItem("ticketSeq") || "1000")
+
+            for (let i = 1; i <= currentQty; i++) {
+                const ticketId = `TCK${dateStr}-${String(seq).padStart(4, '0')}`
+                seq++
+
+                const qrData = `EVENT=${eventName}|TYPE=${currentType}|ID=${ticketId}|PRICE=${finalPerTicket}|TIME=${now.toISOString()}|QTY=${currentQty}|SERIAL=${i}/${currentQty}`
+
+                const ticket = {
+                    id: ticketId,
+                    type: currentType,
+                    basePrice: currentPrice,
+                    finalPrice: finalPerTicket,
+                    discountLabel: discountLabel,
+                    serial: `${i}/${currentQty}`,
+                    event: eventName,
+                    date: new Intl.DateTimeFormat('en-IN', {dateStyle: 'medium'}).format(now),
+                    venue: venue,
+                    timestamp: now.toISOString(),
+                    qrData: qrData
+                }
+
+                generatedTickets.push(ticket)
+            }
+
+            localStorage.setItem("ticketSeq", seq)
+
+            // Render preview
+            const previewContainer = document.getElementById("tickets-preview")
+            previewContainer.innerHTML = ""
+            generatedTickets.forEach(ticket => {
+                const div = document.createElement("div")
+                div.innerHTML = generateTicketHTML(ticket, true)
+                previewContainer.appendChild(div)
+
+                // Render QR after DOM insertion
+                setTimeout(() => {
+                    createQR(`qr-${ticket.id}`, ticket.qrData)
+                }, 50)
+            })
+
+            document.getElementById("empty-state").style.display = "none"
+            document.getElementById("generated-count").textContent = `${currentQty} ticket${currentQty>1?'s':''} ready`
+
+            // Also populate printable
+            renderPrintable()
+        }
+
+        function renderPrintable() {
+            const container = document.getElementById("tickets-container")
+            container.innerHTML = ""
+
+            generatedTickets.forEach(ticket => {
+                const wrapper = document.createElement("div")
+                wrapper.innerHTML = generateTicketHTML(ticket, false)
+                container.appendChild(wrapper.firstElementChild)
+
+                // QR
+                setTimeout(() => {
+                    createQR(`qr-${ticket.id}`, ticket.qrData)
+                }, 100)
+            })
+        }
+
+        function printTickets() {
+            if (generatedTickets.length === 0) {
+                alert("Generate tickets first!")
+                return
+            }
+            document.getElementById("printable").classList.remove("hidden")
+            document.getElementById("print-date").textContent = new Date().toLocaleDateString('en-IN')
+            document.getElementById("print-total").textContent = `₹${generatedTickets.reduce((sum, t) => sum + t.finalPrice, 0).toLocaleString('en-IN')}`
+            window.print()
+            setTimeout(() => {
+                document.getElementById("printable").classList.add("hidden")
+            }, 1000)
+        }
+
+        function downloadPDF() {
+            if (generatedTickets.length === 0) {
+                alert("No tickets to export!")
+                return
+            }
+            document.getElementById("printable").classList.remove("hidden")
+            const element = document.getElementById("printable")
+
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: `tickets_${new Date().toISOString().slice(0,10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.getElementById("printable").classList.add("hidden")
+            })
+        }
+
+        function clearAll() {
+            if (confirm("Clear all generated tickets?")) {
+                generatedTickets = []
+                document.getElementById("tickets-preview").innerHTML = ""
+                document.getElementById("tickets-container").innerHTML = ""
+                document.getElementById("empty-state").style.display = "flex"
+                document.getElementById("generated-count").textContent = `0 tickets generated`
+            }
+        }
+
+        // Discount listener
+        document.getElementById("discount-type").addEventListener("change", function() {
+            discountType = this.value
+            calculateSummary()
+        })
+        document.getElementById("discount-value").addEventListener("input", calculateSummary)
+
+        // Keyboard support
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Enter" && document.getElementById("discount-value") === document.activeElement) {
+                generateTickets()
+            }
+        })
+
+        // Init
+        window.onload = function() {
+            initTypeButtons()
+            initQtyButtons()
+            calculateSummary()
+
+            // Demo ticket on load
+            setTimeout(() => {
+                generateTickets()
+            }, 800)
+        }
+    </script>
+</body>
+</html>
