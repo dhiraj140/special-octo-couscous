@@ -59,24 +59,26 @@
 
         @media print {
             body * {
-                visibility: hidden;
+                visibility: hidden !important;
             }
             #printable, #printable * {
-                visibility: visible;
+                visibility: visible !important;
             }
             #printable {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                z-index: 9999 !important;
             }
             .no-print {
                 display: none !important;
             }
             .ticket {
-                box-shadow: none;
-                border: 2px solid #000;
-                margin: 8mm 0;
+                box-shadow: none !important;
+                border: 2px solid #000 !important;
+                margin: 8mm 0 !important;
             }
         }
 
@@ -527,26 +529,44 @@
                     createQR(`qr-${ticket.id}`, ticket.qrData)
                 }, 100)
             })
+
+            document.getElementById("print-date").textContent = new Date().toLocaleDateString('en-IN')
+            document.getElementById("print-total").textContent = `₹${generatedTickets.reduce((sum, t) => sum + t.finalPrice, 0).toLocaleString('en-IN')}`
         }
 
         function printTickets() {
             if (generatedTickets.length === 0) {
-                alert("Generate tickets first!")
-                return
+                alert("Generate tickets first!");
+                return;
             }
-            document.getElementById("printable").classList.remove("hidden")
-            document.getElementById("print-date").textContent = new Date().toLocaleDateString('en-IN')
-            document.getElementById("print-total").textContent = `₹${generatedTickets.reduce((sum, t) => sum + t.finalPrice, 0).toLocaleString('en-IN')}`
-            window.print()
+
+            const printable = document.getElementById("printable");
+
+            // Show it off-screen but renderable
+            printable.style.display = 'block';
+            printable.style.position = 'absolute';
+            printable.style.left = '0';
+            printable.style.top = '0';
+            printable.style.width = '100%';
+            printable.style.zIndex = '9999';
+
             setTimeout(() => {
-                document.getElementById("printable").classList.add("hidden")
-            }, 1000)
+                window.focus();           // helps some browsers
+                window.print();
+
+                setTimeout(() => {
+                    printable.style.display = 'none';
+                    printable.style.position = 'fixed';
+                    printable.style.left = '';
+                    printable.style.zIndex = '';
+                }, 1200);
+            }, 600);  // increased delay for QR rendering
         }
 
         function downloadPDF() {
             if (generatedTickets.length === 0) {
-                alert("No tickets to export!")
-                return
+                alert("No tickets to export!");
+                return;
             }
             document.getElementById("printable").classList.remove("hidden")
             const element = document.getElementById("printable")
