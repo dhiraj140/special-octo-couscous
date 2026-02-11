@@ -1,0 +1,96 @@
+<!-- verify.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERIFIER • xAI Summit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .scan-area {
+            background: linear-gradient(180deg, #111827, #1f2937);
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 shadow-2xl">
+        <!-- header -->
+        <div class="px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-4">
+            <div class="w-11 h-11 bg-white text-blue-600 rounded-2xl flex items-center justify-center text-3xl font-black">T</div>
+            <div class="font-bold text-2xl logo-font">ENTRY VERIFIER</div>
+        </div>
+
+        <div class="p-8">
+            <div class="scan-area h-80 rounded-3xl flex items-center justify-center border-4 border-dashed border-zinc-700 relative">
+                <div id="scan-result" class="text-center">
+                    <i class="fas fa-qrcode text-8xl text-zinc-700 mb-6"></i>
+                    <p class="text-zinc-400 text-lg font-medium">Place QR code here</p>
+                    <p class="text-zinc-600 text-sm mt-1">or enter Ticket ID manually</p>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <input id="manual-id" placeholder="TCK20260320-1234" 
+                       class="w-full bg-zinc-950 border border-zinc-700 focus:border-blue-500 rounded-3xl px-8 py-6 text-xl font-mono text-center focus:outline-none">
+            </div>
+
+            <button onclick="verifyTicket()" 
+                    class="mt-6 w-full py-6 bg-emerald-500 hover:bg-emerald-600 transition-colors text-white font-bold text-lg rounded-3xl flex items-center justify-center gap-3">
+                <i class="fas fa-check-circle"></i>
+                VERIFY TICKET
+            </button>
+
+            <div id="verification-result" class="mt-8 min-h-[120px]"></div>
+        </div>
+
+        <div class="border-t border-zinc-800 px-8 py-4 text-center text-xs text-zinc-500 font-mono">
+            GATE • 03 • DELHI • 20 MAR 2026
+        </div>
+    </div>
+
+    <script>
+        function verifyTicket() {
+            const input = document.getElementById("manual-id").value.trim().toUpperCase()
+            const resultDiv = document.getElementById("verification-result")
+
+            if (!input) {
+                resultDiv.innerHTML = `<div class="bg-amber-900 text-amber-300 p-6 rounded-3xl text-center">Enter a Ticket ID</div>`
+                return
+            }
+
+            // Get used tickets from localStorage (shared with main page)
+            let used = JSON.parse(localStorage.getItem("usedTickets") || "[]")
+
+            if (used.includes(input)) {
+                resultDiv.innerHTML = `
+                    <div class="bg-red-900/70 border border-red-700 p-8 rounded-3xl text-center">
+                        <i class="fas fa-ban text-6xl text-red-400 mb-6"></i>
+                        <div class="text-red-400 text-2xl font-bold">ALREADY USED</div>
+                        <div class="text-red-300 mt-3">Ticket ${input} was scanned earlier.</div>
+                    </div>
+                `
+            } else {
+                // Mark as used
+                used.push(input)
+                localStorage.setItem("usedTickets", JSON.stringify(used))
+
+                resultDiv.innerHTML = `
+                    <div class="bg-emerald-900/70 border border-emerald-600 p-8 rounded-3xl text-center">
+                        <i class="fas fa-check-circle text-6xl text-emerald-400 mb-6"></i>
+                        <div class="text-emerald-400 text-3xl font-bold">VALID ENTRY</div>
+                        <div class="mt-4 text-emerald-300">Ticket <span class="font-mono bg-emerald-950 px-3 py-1 rounded">${input}</span></div>
+                        <div class="text-xs text-emerald-600 mt-8">Welcome to xAI India Summit 2026</div>
+                    </div>
+                `
+            }
+        }
+
+        // Allow Enter key
+        document.getElementById("manual-id").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") verifyTicket()
+        })
+    </script>
+</body>
+</html>
