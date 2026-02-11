@@ -11,17 +11,11 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
 
-        :root {
-            --primary: #1e40af;
-        }
+        :root { --primary: #1e40af; }
 
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-        }
+        body { font-family: 'Inter', system-ui, sans-serif; }
 
-        .logo-font {
-            font-family: 'Playfair Display', serif;
-        }
+        .logo-font { font-family: 'Playfair Display', serif; }
 
         .ticket {
             width: 80mm;
@@ -29,26 +23,18 @@
             background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
             border: 2.5px solid #1e40af;
             border-radius: 6px;
-            box-shadow: 0 8px 24px -12px rgb(30 64 175 / 0.5);
             overflow: hidden;
             position: relative;
             page-break-inside: avoid;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .ticket::after {
             content: '';
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             height: 14px;
-            background: repeating-linear-gradient(
-                45deg,
-                #1e40af,
-                #1e40af 8px,
-                #f1f5f9 8px,
-                #f1f5f9 16px
-            );
+            background: repeating-linear-gradient(45deg, #1e40af, #1e40af 8px, #f1f5f9 8px, #f1f5f9 16px);
         }
 
         .ticket-cut {
@@ -57,197 +43,47 @@
             padding-top: 6px;
         }
 
-        .qr-container {
-            width: 56px;
-            height: 56px;
-        }
+        .qr-container { width: 56px; height: 56px; }
 
         @media print {
-            body * {
-                visibility: hidden !important;
-            }
-            #printable,
-            #printable * {
-                visibility: visible !important;
-            }
+            body * { visibility: hidden !important; }
+            #printable, #printable * { visibility: visible !important; }
             #printable {
                 position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
+                inset: 0 !important;
                 width: 100% !important;
-                height: auto !important;
-                z-index: 9999 !important;
-            }
-            .no-print {
-                display: none !important;
+                min-height: 100vh !important;
+                background: white !important;
+                padding: 10mm !important;
+                box-sizing: border-box !important;
             }
             .ticket {
                 box-shadow: none !important;
-                border: 1.5px solid #000 !important;
-                margin: 6mm 4mm !important;
+                border: 1px solid #000 !important;
+                margin: 5mm 3mm !important;
                 width: 80mm !important;
                 height: 48mm !important;
             }
             #tickets-container {
+                display: grid !important;
                 grid-template-columns: repeat(3, 80mm) !important;
-                gap-x: 12mm !important;
-                gap-y: 8mm !important;
+                gap: 10mm 12mm !important;
+                justify-content: center !important;
                 max-width: 210mm !important;
                 margin: 0 auto !important;
             }
-            #print-header {
-                margin-bottom: 10mm !important;
-            }
+            #print-header { margin-bottom: 8mm !important; }
+            .print\\:hidden { display: none !important; }
         }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200 min-h-screen">
-    <div class="flex h-screen overflow-hidden">
-        <!-- SIDEBAR -->
-        <div class="w-96 bg-zinc-900 border-r border-zinc-800 flex flex-col">
-            <div class="px-8 py-6 border-b border-zinc-800 flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold logo-font shadow-inner">T</div>
-                <div>
-                    <h1 class="text-3xl font-bold tracking-tighter logo-font text-white">COUNTER</h1>
-                    <p class="text-blue-400 text-xs tracking-[3px] uppercase font-mono -mt-1">Ticket Station</p>
-                </div>
-            </div>
 
-            <div class="flex-1 p-8 space-y-8 overflow-auto">
-                <div>
-                    <label class="block text-zinc-400 text-xs font-medium mb-2 tracking-widest">EVENT</label>
-                    <input id="event-name" value="xAI India Summit 2026" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-lg focus:outline-none focus:border-blue-500">
-                    <div class="grid grid-cols-2 gap-4 mt-4">
-                        <div>
-                            <label class="block text-zinc-400 text-xs font-medium mb-2">DATE</label>
-                            <input id="event-date" type="date" value="2026-03-20" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-zinc-400 text-xs font-medium mb-2">VENUE</label>
-                            <input id="event-venue" value="Yashobhoomi, Delhi" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-blue-500">
-                        </div>
-                    </div>
-                </div>
+    <!-- Your existing sidebar + preview layout remains the same -->
+    <!-- ... (copy your sidebar, top bar, preview area, status bar here - unchanged) ... -->
 
-                <div>
-                    <label class="block text-zinc-400 text-xs font-medium mb-3 tracking-widest">TICKET CATEGORY</label>
-                    <div class="grid grid-cols-3 gap-3" id="type-buttons"></div>
-                </div>
-
-                <div class="bg-zinc-950 border border-zinc-700 rounded-3xl p-6">
-                    <div class="flex justify-between items-baseline">
-                        <span class="text-zinc-400 text-sm">Base Price</span>
-                        <span id="base-price" class="text-4xl font-semibold text-white">₹15,000</span>
-                    </div>
-                    <div class="inline-flex items-center gap-2 mt-4 px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-2xl">
-                        <span id="selected-type">PRIME</span>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-zinc-400 text-xs font-medium mb-2 tracking-widest">NUMBER OF TICKETS</label>
-                    <div class="flex gap-2 flex-wrap" id="qty-buttons"></div>
-                </div>
-
-                <div>
-                    <label class="block text-zinc-400 text-xs font-medium mb-3 tracking-widest">DISCOUNT</label>
-                    <div class="flex gap-3">
-                        <select id="discount-type" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 flex-1 focus:outline-none focus:border-blue-500 text-sm">
-                            <option value="none">No Discount</option>
-                            <option value="flat">Flat Amount (₹)</option>
-                            <option value="percent">Percentage (%)</option>
-                        </select>
-                        <input id="discount-value" type="number" placeholder="0" class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 w-32 focus:outline-none focus:border-blue-500">
-                    </div>
-                </div>
-
-                <div class="bg-zinc-950 border border-zinc-700 rounded-3xl p-6 space-y-4 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-zinc-400">Subtotal</span>
-                        <span id="subtotal" class="font-medium">₹15,000</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-zinc-400">Discount</span>
-                        <span id="discount-amount" class="font-medium text-emerald-400">- ₹0</span>
-                    </div>
-                    <div class="h-px bg-zinc-800 my-2"></div>
-                    <div class="flex justify-between text-lg font-semibold">
-                        <span class="text-zinc-400">FINAL PAYABLE</span>
-                        <span id="final-amount" class="text-emerald-400">₹15,000</span>
-                    </div>
-                    <div class="text-[10px] text-zinc-500 text-center mt-4">for <span id="qty-summary">1</span> ticket(s)</div>
-                </div>
-            </div>
-
-            <div class="p-8 border-t border-zinc-800 bg-zinc-900 space-y-4">
-                <button onclick="generateTickets()" class="w-full bg-white hover:bg-zinc-100 text-zinc-900 font-semibold py-6 rounded-3xl flex items-center justify-center gap-3 text-lg shadow-lg shadow-blue-500/30 transition-all active:scale-95">
-                    <i class="fas fa-ticket"></i> GENERATE & PREVIEW
-                </button>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="printTickets()" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 py-5 rounded-3xl font-medium flex items-center justify-center gap-2">
-                        <i class="fas fa-print"></i> PRINT
-                    </button>
-                    <button onclick="downloadPDF()" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 py-5 rounded-3xl font-medium flex items-center justify-center gap-2">
-                        <i class="fas fa-file-pdf"></i> PDF
-                    </button>
-                </div>
-                <button onclick="clearAll()" class="w-full text-red-400 hover:text-red-500 flex items-center justify-center gap-2 py-4 text-sm font-medium">
-                    <i class="fas fa-trash"></i> CLEAR SESSION
-                </button>
-            </div>
-        </div>
-
-        <!-- MAIN CONTENT -->
-        <div class="flex-1 flex flex-col">
-            <div class="h-16 bg-zinc-900 border-b border-zinc-800 px-10 flex items-center justify-between">
-                <div class="flex items-center gap-8 text-sm">
-                    <div class="flex items-center gap-2 text-emerald-400">
-                        <div class="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
-                        <span class="font-medium">LIVE • COUNTER #03</span>
-                    </div>
-                    <div class="text-zinc-500">Staff: <span class="text-white">Rahul Sharma</span></div>
-                </div>
-                <div class="flex items-center gap-6 text-zinc-400">
-                    <button onclick="window.location.reload()" class="hover:text-white transition-colors">
-                        <i class="fas fa-redo"></i>
-                    </button>
-                    <a href="verify.html" target="_blank" class="bg-zinc-800 hover:bg-zinc-700 px-6 py-2 rounded-2xl text-xs font-mono tracking-widest flex items-center gap-2">
-                        <i class="fas fa-qrcode"></i> VERIFICATION MODE
-                    </a>
-                </div>
-            </div>
-
-            <div class="flex-1 p-10 overflow-auto bg-zinc-950" id="preview-area">
-                <div class="max-w-5xl mx-auto">
-                    <div class="flex items-center justify-between mb-8">
-                        <h2 class="text-2xl font-semibold">Ticket Preview</h2>
-                        <div id="generated-count" class="text-emerald-400 font-mono text-sm bg-zinc-900 px-6 py-2 rounded-3xl">
-                            0 tickets generated
-                        </div>
-                    </div>
-
-                    <div id="tickets-preview" class="grid grid-cols-4 gap-6"></div>
-
-                    <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center py-20">
-                        <div class="w-24 h-24 bg-zinc-900 rounded-3xl flex items-center justify-center mb-6">
-                            <i class="fas fa-ticket text-5xl text-zinc-700"></i>
-                        </div>
-                        <p class="text-zinc-500 text-xl">No tickets generated yet</p>
-                        <p class="text-zinc-600 mt-2 max-w-xs">Select category, quantity and discount then click GENERATE</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="h-14 bg-zinc-900 border-t border-zinc-800 px-10 flex items-center text-xs font-mono text-zinc-500">
-                <div>© 2026 xAI Events • All tickets issued are non-transferable • GST 18% included</div>
-                <div class="flex-1"></div>
-                <div id="last-generated" class="text-emerald-400">—</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PRINTABLE AREA -->
-    <div id="printable" class="hidden fixed inset-0 bg-white z-50 overflow-auto p-8">
+    <!-- PRINTABLE AREA – improved -->
+    <div id="printable" class="hidden bg-white overflow-auto p-8" style="position:absolute; left:0; top:0; width:100%; z-index:9999;">
         <div id="print-header" class="max-w-[210mm] mx-auto mb-8 flex justify-between items-center border-b pb-6">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-4xl font-black logo-font">T</div>
@@ -257,13 +93,13 @@
                 </div>
             </div>
             <div class="text-right">
-                <div class="text-4xl font-bold text-blue-600" id="print-total">₹15,000</div>
+                <div class="text-4xl font-bold text-blue-600" id="print-total">₹0</div>
                 <div class="text-xs text-zinc-500">TOTAL COLLECTED</div>
             </div>
         </div>
 
         <div id="tickets-container" class="max-w-[210mm] mx-auto grid grid-cols-3 gap-x-12 gap-y-8">
-            <!-- tickets injected here -->
+            <!-- tickets go here -->
         </div>
 
         <div class="text-center text-zinc-400 text-xs mt-12 print:hidden">
@@ -272,276 +108,103 @@
     </div>
 
     <script>
-        let currentType = "PRIME";
-        let currentPrice = 15000;
-        let currentQty = 1;
-        let discountType = "none";
-        let generatedTickets = [];
+        // ... (keep your existing variables, initTypeButtons, initQtyButtons, calculateSummary, generateTicketHTML unchanged)
 
-        const ticketTypes = {
-            PRIME:  { name: "PRIME",  price: 15000, color: "bg-blue-600"    },
-            PLUS:   { name: "PLUS",   price: 11000, color: "bg-emerald-600" },
-            ECONO:  { name: "ECONO",  price: 2500,  color: "bg-amber-600"   }
-        };
-
-        function initTypeButtons() {
-            const container = document.getElementById("type-buttons");
-            container.innerHTML = "";
-            Object.keys(ticketTypes).forEach(key => {
-                const btn = document.createElement("button");
-                btn.className = `type-btn flex flex-col items-center justify-center h-28 rounded-3xl border-2 transition-all ${key === currentType ? 'border-white bg-zinc-800' : 'border-transparent bg-zinc-800 hover:border-zinc-700'}`;
-                btn.innerHTML = `
-                    <div class="${ticketTypes[key].color} w-11 h-11 rounded-2xl flex items-center justify-center text-white text-xl font-bold mb-3">${key[0]}</div>
-                    <div class="text-sm font-semibold">${key}</div>
-                    <div class="text-emerald-400 font-mono text-xs">₹${ticketTypes[key].price.toLocaleString('en-IN')}</div>
-                `;
-                btn.onclick = () => {
-                    currentType = key;
-                    currentPrice = ticketTypes[key].price;
-                    document.getElementById("base-price").textContent = `₹${currentPrice.toLocaleString('en-IN')}`;
-                    document.getElementById("selected-type").textContent = key;
-                    document.querySelectorAll(".type-btn").forEach(b => {
-                        b.classList.toggle("border-white bg-zinc-800", b === btn);
-                    });
-                    calculateSummary();
-                };
-                container.appendChild(btn);
-            });
-        }
-
-        function initQtyButtons() {
-            const container = document.getElementById("qty-buttons");
-            container.innerHTML = "";
-            [1,2,3,4,5,10,20].forEach(q => {
-                const btn = document.createElement("button");
-                btn.className = `qty-btn px-7 py-5 rounded-3xl font-mono text-xl transition-all ${q === currentQty ? 'bg-white text-zinc-900 shadow-lg' : 'bg-zinc-800 hover:bg-zinc-700'}`;
-                btn.textContent = q;
-                btn.onclick = () => {
-                    currentQty = q;
-                    document.querySelectorAll(".qty-btn").forEach(b => {
-                        const val = parseInt(b.textContent);
-                        b.classList.toggle("bg-white text-zinc-900 shadow-lg", val === q);
-                        b.classList.toggle("bg-zinc-800 hover:bg-zinc-700", val !== q);
-                    });
-                    calculateSummary();
-                };
-                container.appendChild(btn);
-            });
-        }
-
-        function calculateSummary() {
-            const subtotal = currentPrice * currentQty;
-            let discount = 0;
-            if (discountType === "flat") {
-                discount = Math.min(parseFloat(document.getElementById("discount-value").value) || 0, subtotal);
-            } else if (discountType === "percent") {
-                const perc = Math.min(parseFloat(document.getElementById("discount-value").value) || 0, 100);
-                discount = Math.round(subtotal * perc / 100);
-            }
-            const final = subtotal - discount;
-
-            document.getElementById("subtotal").textContent       = `₹${subtotal.toLocaleString('en-IN')}`;
-            document.getElementById("discount-amount").textContent = `- ₹${discount.toLocaleString('en-IN')}`;
-            document.getElementById("final-amount").textContent   = `₹${final.toLocaleString('en-IN')}`;
-            document.getElementById("qty-summary").textContent    = currentQty;
-        }
-
-        function generateTicketHTML(ticket, isPreview = false) {
-            const scale = isPreview ? "scale-90 origin-top-left" : "";
-            const sizeClass = isPreview ? "w-[240px] h-[144px]" : "ticket";
-
-            return `
-                <div class="${sizeClass} ${scale} flex flex-col relative overflow-hidden text-zinc-900">
-                    <div class="px-5 py-3 flex-1 flex flex-col text-sm">
-                        <div class="flex justify-between items-start mb-1">
-                            <div>
-                                <div class="text-[9px] font-mono tracking-wide text-zinc-600">${ticket.event}</div>
-                                <div class="text-base font-bold logo-font leading-tight">${ticket.type}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold text-blue-700">₹${ticket.finalPrice.toLocaleString('en-IN')}</div>
-                                ${ticket.discountLabel ? `<div class="text-[9px] text-emerald-700 font-medium">${ticket.discountLabel}</div>` : ''}
-                            </div>
-                        </div>
-
-                        <div class="text-[9px] text-zinc-700 mt-auto">
-                            ${ticket.venue} • ${ticket.date}
-                        </div>
-
-                        <div class="ticket-cut flex items-center justify-between text-[9px] font-medium">
-                            <div>
-                                <div class="font-mono text-zinc-600 text-[8px]">ID</div>
-                                <div class="font-bold">${ticket.id}</div>
-                            </div>
-                            <div class="text-center font-bold text-lg text-zinc-900">
-                                ${ticket.serial}
-                            </div>
-                            <div class="qr-container mx-auto">
-                                <div id="qr-${ticket.id}"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="absolute bottom-0 left-0 right-0 bg-red-600 text-white text-[8px] font-bold py-0.5 px-4 text-center tracking-wide">
-                        SINGLE ENTRY ONLY • DUPLICATES REJECTED
-                    </div>
-                </div>
-            `;
-        }
-
-        function createQR(elementId, data) {
+        // Improved QR creation with callback
+        function createQR(elementId, data, callback = () => {}) {
             const container = document.getElementById(elementId);
-            if (!container) return;
+            if (!container) return callback();
             container.innerHTML = "";
             new QRCode(container, {
                 text: data,
                 width: 56,
                 height: 56,
                 colorDark: "#000000",
-                colorLight: "#f8fafc",
+                colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
+            setTimeout(callback, 300); // give time to render
         }
 
-        function generateTickets() {
-            const eventName = document.getElementById("event-name").value;
-            const venue     = document.getElementById("event-venue").value;
+        // In generateTickets() – after pushing all tickets
+        // Render preview as before...
 
-            const subtotal = currentPrice * currentQty;
-            let discountAmount = 0;
-            let discountLabel = "";
-
-            if (discountType === "flat") {
-                discountAmount = parseFloat(document.getElementById("discount-value").value) || 0;
-                discountLabel = `₹${discountAmount} OFF`;
-            } else if (discountType === "percent") {
-                const perc = parseFloat(document.getElementById("discount-value").value) || 0;
-                discountAmount = Math.round(subtotal * perc / 100);
-                discountLabel = `${perc}% OFF`;
-            }
-
-            const finalTotal = subtotal - discountAmount;
-            const finalPerTicket = Math.round(finalTotal / currentQty);
-
-            generatedTickets = [];
-
-            const now = new Date();
-            const dateStr = now.toISOString().slice(0,10).replace(/-/g,'');
-            let seq = parseInt(localStorage.getItem("ticketSeq") || "1000");
-
-            for (let i = 1; i <= currentQty; i++) {
-                const ticketId = `TCK${dateStr}-${String(seq).padStart(4,'0')}`;
-                seq++;
-
-                const qrData = `EVENT=${eventName}|TYPE=${currentType}|ID=${ticketId}|PRICE=${finalPerTicket}|TIME=${now.toISOString()}|QTY=${currentQty}|SERIAL=${i}/${currentQty}`;
-
-                generatedTickets.push({
-                    id: ticketId,
-                    type: currentType,
-                    finalPrice: finalPerTicket,
-                    discountLabel,
-                    serial: `${i}/${currentQty}`,
-                    event: eventName,
-                    date: now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-                    venue,
-                    qrData
-                });
-            }
-
-            localStorage.setItem("ticketSeq", seq);
-
-            // Preview
-            const preview = document.getElementById("tickets-preview");
-            preview.innerHTML = "";
-            generatedTickets.forEach(t => {
-                const div = document.createElement("div");
-                div.innerHTML = generateTicketHTML(t, true);
-                preview.appendChild(div);
-                setTimeout(() => createQR(`qr-${t.id}`, t.qrData), 100);
-            });
-
-            document.getElementById("empty-state").style.display = "none";
-            document.getElementById("generated-count").textContent = `${currentQty} ticket${currentQty > 1 ? 's' : ''} ready`;
-
-            renderPrintable();
-        }
-
-        function renderPrintable() {
+        function renderPrintable(callback = () => {}) {
             const container = document.getElementById("tickets-container");
             container.innerHTML = "";
-            generatedTickets.forEach(t => {
+            let rendered = 0;
+
+            generatedTickets.forEach((t, index) => {
                 const wrapper = document.createElement("div");
                 wrapper.innerHTML = generateTicketHTML(t, false);
                 container.appendChild(wrapper.firstElementChild);
-                setTimeout(() => createQR(`qr-${t.id}`, t.qrData), 150);
-            });
 
-            document.getElementById("print-date").textContent = new Date().toLocaleDateString('en-IN');
-            document.getElementById("print-total").textContent = `₹${generatedTickets.reduce((sum, t) => sum + t.finalPrice, 0).toLocaleString('en-IN')}`;
+                createQR(`qr-${t.id}`, t.qrData, () => {
+                    rendered++;
+                    if (rendered === generatedTickets.length) {
+                        document.getElementById("print-date").textContent = new Date().toLocaleDateString('en-IN');
+                        document.getElementById("print-total").textContent = `₹${generatedTickets.reduce((s, t) => s + t.finalPrice, 0).toLocaleString('en-IN')}`;
+                        callback();
+                    }
+                });
+            });
         }
 
         function printTickets() {
             if (!generatedTickets.length) return alert("Generate tickets first!");
-            const printable = document.getElementById("printable");
-            printable.style.display = 'block';
-            printable.style.position = 'absolute';
-            printable.style.left = '0';
-            printable.style.top = '0';
-            printable.style.width = '100%';
-            printable.style.zIndex = '9999';
 
-            setTimeout(() => {
-                window.focus();
-                window.print();
+            const printable = document.getElementById("printable");
+            printable.classList.remove("hidden");
+
+            renderPrintable(() => {
                 setTimeout(() => {
-                    printable.style.display = 'none';
-                    printable.style.position = 'fixed';
-                    printable.style.zIndex = '';
-                }, 1200);
-            }, 600);
+                    window.focus();
+                    window.print();
+                    setTimeout(() => {
+                        printable.classList.add("hidden");
+                    }, 1500);
+                }, 800); // extra time for layout
+            });
         }
 
         function downloadPDF() {
             if (!generatedTickets.length) return alert("No tickets to export!");
+
+            if (generatedTickets.length > 12) {
+                if (!confirm("Large quantity (PDF may be blank due to browser limits). Continue anyway?")) return;
+            }
+
             const printable = document.getElementById("printable");
             printable.classList.remove("hidden");
 
-            const opt = {
-                margin:       [10, 10, 10, 10],
-                filename:     `tickets_${new Date().toISOString().slice(0,10)}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+            renderPrintable(() => {
+                setTimeout(() => {
+                    const opt = {
+                        margin: [8, 8, 8, 8],
+                        filename: `tickets_${new Date().toISOString().slice(0,10)}.pdf`,
+                        image: { type: 'jpeg', quality: 0.95 },
+                        html2canvas: { 
+                            scale: 2.2, 
+                            useCORS: true, 
+                            logging: false,
+                            windowWidth: 794,   // A4 at 96dpi ≈ 794px
+                            windowHeight: 1123
+                        },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
 
-            html2pdf().set(opt).from(printable).save().then(() => {
-                printable.classList.add("hidden");
+                    html2pdf().set(opt).from(printable).save().then(() => {
+                        printable.classList.add("hidden");
+                    }).catch(err => {
+                        console.error(err);
+                        alert("PDF generation failed – try PRINT → Save as PDF instead.");
+                        printable.classList.add("hidden");
+                    });
+                }, 1200);
             });
         }
 
-        function clearAll() {
-            if (confirm("Clear all generated tickets?")) {
-                generatedTickets = [];
-                document.getElementById("tickets-preview").innerHTML = "";
-                document.getElementById("tickets-container").innerHTML = "";
-                document.getElementById("empty-state").style.display = "flex";
-                document.getElementById("generated-count").textContent = "0 tickets generated";
-            }
-        }
-
-        document.getElementById("discount-type").addEventListener("change", e => {
-            discountType = e.target.value;
-            calculateSummary();
-        });
-
-        document.getElementById("discount-value").addEventListener("input", calculateSummary);
-
-        window.onload = () => {
-            initTypeButtons();
-            initQtyButtons();
-            calculateSummary();
-            setTimeout(generateTickets, 800); // demo on load
-        };
+        // ... (rest of your script: clearAll, event listeners, onload)
     </script>
 </body>
 </html>
