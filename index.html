@@ -1,210 +1,301 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COUNTER • Ticket Station</title>
+    <title>Event Ticket Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter&family=Playfair+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
-
-        :root { --primary: #1e40af; }
-
-        body { font-family: 'Inter', system-ui, sans-serif; }
-
-        .logo-font { font-family: 'Playfair Display', serif; }
-
-        .ticket {
-            width: 80mm;
-            height: 48mm;
-            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
-            border: 2.5px solid #1e40af;
-            border-radius: 6px;
-            overflow: hidden;
-            position: relative;
-            page-break-inside: avoid;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        body {
+            font-family: 'Inter', sans-serif;
         }
-
-        .ticket::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 14px;
-            background: repeating-linear-gradient(45deg, #1e40af, #1e40af 8px, #f1f5f9 8px, #f1f5f9 16px);
+        .logo-font {
+            font-family: 'Playfair Display', serif;
         }
-
-        .ticket-cut {
-            border-top: 1.5px dashed #64748b;
-            margin-top: 6px;
-            padding-top: 6px;
-        }
-
-        .qr-container { width: 56px; height: 56px; }
-
         @media print {
-            body * { visibility: hidden !important; }
-            #printable, #printable * { visibility: visible !important; }
+            @page {
+                size: A4 landscape;
+                margin: 5mm;
+            }
+            body > * {
+                display: none !important;
+            }
             #printable {
-                position: absolute !important;
-                inset: 0 !important;
-                width: 100% !important;
-                min-height: 100vh !important;
-                background: white !important;
-                padding: 10mm !important;
-                box-sizing: border-box !important;
+                display: grid !important;
+                grid-template-columns: repeat(3, 80mm);
+                grid-auto-rows: 48mm;
+                gap: 6mm;
+                position: static !important;
+                left: 0 !important;
             }
             .ticket {
-                box-shadow: none !important;
-                border: 1px solid #000 !important;
-                margin: 5mm 3mm !important;
-                width: 80mm !important;
-                height: 48mm !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
             }
-            #tickets-container {
-                display: grid !important;
-                grid-template-columns: repeat(3, 80mm) !important;
-                gap: 10mm 12mm !important;
-                justify-content: center !important;
-                max-width: 210mm !important;
-                margin: 0 auto !important;
-            }
-            #print-header { margin-bottom: 8mm !important; }
-            .print\\:hidden { display: none !important; }
         }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-200 min-h-screen">
-
-    <!-- Your existing sidebar + preview layout remains the same -->
-    <!-- ... (copy your sidebar, top bar, preview area, status bar here - unchanged) ... -->
-
-    <!-- PRINTABLE AREA – improved -->
-    <div id="printable" class="hidden bg-white overflow-auto p-8" style="position:absolute; left:0; top:0; width:100%; z-index:9999;">
-        <div id="print-header" class="max-w-[210mm] mx-auto mb-8 flex justify-between items-center border-b pb-6">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-4xl font-black logo-font">T</div>
-                <div>
-                    <div class="text-3xl font-bold text-zinc-900 logo-font">xAI India Summit 2026</div>
-                    <div class="text-zinc-600">Official Entry Tickets</div>
-                </div>
-            </div>
-            <div class="text-right">
-                <div class="text-4xl font-bold text-blue-600" id="print-total">₹0</div>
-                <div class="text-xs text-zinc-500">TOTAL COLLECTED</div>
-            </div>
+<body class="bg-zinc-950 text-zinc-200 min-h-screen flex">
+    <aside class="w-96 p-6 border-r border-zinc-800 flex flex-col gap-4">
+        <h1 class="logo-font text-3xl mb-4">Event Ticket Generator</h1>
+        
+        <!-- Event Details -->
+        <div>
+            <label class="block text-sm mb-1">Event Name</label>
+            <input id="eventName" class="w-full bg-zinc-800 text-zinc-200 p-2 rounded" value="Sample Event">
         </div>
-
-        <div id="tickets-container" class="max-w-[210mm] mx-auto grid grid-cols-3 gap-x-12 gap-y-8">
-            <!-- tickets go here -->
+        <div>
+            <label class="block text-sm mb-1">Event Date</label>
+            <input id="eventDate" type="date" class="w-full bg-zinc-800 text-zinc-200 p-2 rounded">
         </div>
-
-        <div class="text-center text-zinc-400 text-xs mt-12 print:hidden">
-            Printed on <span id="print-date"></span> • For internal use only
+        <div>
+            <label class="block text-sm mb-1">Venue</label>
+            <input id="venue" class="w-full bg-zinc-800 text-zinc-200 p-2 rounded" value="Sample Venue">
         </div>
-    </div>
-
+        
+        <!-- Ticket Type -->
+        <div>
+            <label class="block text-sm mb-1">Ticket Type</label>
+            <select id="ticketType" class="w-full bg-zinc-800 text-zinc-200 p-2 rounded">
+                <option value="PRIME" data-price="15000">PRIME - ₹15,000</option>
+                <option value="PLUS" data-price="11000">PLUS - ₹11,000</option>
+                <option value="ECONO" data-price="2500">ECONO - ₹2,500</option>
+            </select>
+        </div>
+        
+        <!-- Quantity -->
+        <div>
+            <label class="block text-sm mb-1">Quantity</label>
+            <select id="quantity" class="w-full bg-zinc-800 text-zinc-200 p-2 rounded">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+            </select>
+        </div>
+        
+        <!-- Discount -->
+        <div>
+            <label class="block text-sm mb-1">Discount Type</label>
+            <select id="discountType" class="w-full bg-zinc-800 text-zinc-200 p-2 rounded">
+                <option value="none">No Discount</option>
+                <option value="flat">Flat Amount (₹)</option>
+                <option value="percent">Percentage (%)</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm mb-1">Discount Value</label>
+            <input id="discountValue" type="number" min="0" class="w-full bg-zinc-800 text-zinc-200 p-2 rounded" disabled>
+        </div>
+        
+        <!-- Live Summary -->
+        <div class="bg-zinc-900 p-4 rounded">
+            <h2 class="text-lg mb-2">Summary</h2>
+            <p>Ticket Type: <span id="sumType" class="font-bold"></span> <span class="ml-2 px-2 py-1 bg-blue-600 text-xs rounded">Badge</span></p>
+            <p>Base Price: ₹<span id="sumPrice"></span></p>
+            <p>Quantity: <span id="sumQty"></span></p>
+            <p>Subtotal: ₹<span id="sumSub"></span></p>
+            <p>Discount: ₹<span id="sumDisc"></span></p>
+            <p class="text-2xl text-emerald-400">Final: ₹<span id="sumFinal"></span></p>
+        </div>
+        
+        <!-- Buttons -->
+        <button id="generate" class="bg-blue-600 text-white p-2 rounded flex items-center justify-center gap-2"><i class="fas fa-ticket-alt"></i> Generate Preview</button>
+        <button id="printBtn" class="bg-emerald-600 text-white p-2 rounded flex items-center justify-center gap-2"><i class="fas fa-print"></i> Print</button>
+        <button id="pdfBtn" class="bg-purple-600 text-white p-2 rounded flex items-center justify-center gap-2"><i class="fas fa-file-pdf"></i> PDF</button>
+        <button id="clear" class="bg-red-600 text-white p-2 rounded flex items-center justify-center gap-2"><i class="fas fa-trash"></i> Clear Session</button>
+    </aside>
+    
+    <main class="flex-1 p-6">
+        <h2 class="text-2xl mb-4">Ticket Preview</h2>
+        <div id="preview" class="grid grid-cols-4 gap-4"></div>
+    </main>
+    
+    <div id="printable" class="absolute left-[-9999px] grid grid-template-columns: repeat(3, 80mm) gap-6mm"></div>
+    
     <script>
-        // ... (keep your existing variables, initTypeButtons, initQtyButtons, calculateSummary, generateTicketHTML unchanged)
+        // Initialize defaults
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('eventDate').value = today;
+            updateSummary();
+            generateTickets(); // Demo 1 ticket
+        });
 
-        // Improved QR creation with callback
-        function createQR(elementId, data, callback = () => {}) {
-            const container = document.getElementById(elementId);
-            if (!container) return callback();
-            container.innerHTML = "";
-            new QRCode(container, {
-                text: data,
-                width: 56,
-                height: 56,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            setTimeout(callback, 300); // give time to render
+        // Get elements
+        const inputs = ['ticketType', 'quantity', 'discountType', 'discountValue', 'eventName', 'eventDate', 'venue'];
+        inputs.forEach(id => document.getElementById(id).addEventListener('change', updateSummary));
+
+        document.getElementById('discountType').addEventListener('change', () => {
+            const type = document.getElementById('discountType').value;
+            const valueInput = document.getElementById('discountValue');
+            valueInput.disabled = type === 'none';
+            if (type === 'none') valueInput.value = '';
+        });
+
+        document.getElementById('generate').addEventListener('click', generateTickets);
+        document.getElementById('printBtn').addEventListener('click', printTickets);
+        document.getElementById('pdfBtn').addEventListener('click', pdfTickets);
+        document.getElementById('clear').addEventListener('click', () => {
+            localStorage.clear();
+            alert('Session cleared');
+            location.reload();
+        });
+
+        // Update live summary
+        function updateSummary() {
+            const typeSelect = document.getElementById('ticketType');
+            const type = typeSelect.value;
+            const basePrice = parseInt(typeSelect.options[typeSelect.selectedIndex].dataset.price);
+            const qty = parseInt(document.getElementById('quantity').value);
+            const discType = document.getElementById('discountType').value;
+            const discValue = parseFloat(document.getElementById('discountValue').value) || 0;
+
+            const subtotal = basePrice * qty;
+            let discountAmt = 0;
+            if (discType === 'flat') discountAmt = discValue;
+            else if (discType === 'percent') discountAmt = subtotal * (discValue / 100);
+            const finalTotal = subtotal - discountAmt;
+
+            document.getElementById('sumType').textContent = type;
+            document.getElementById('sumPrice').textContent = basePrice.toLocaleString();
+            document.getElementById('sumQty').textContent = qty;
+            document.getElementById('sumSub').textContent = subtotal.toLocaleString();
+            document.getElementById('sumDisc').textContent = discountAmt.toLocaleString();
+            document.getElementById('sumFinal').textContent = finalTotal.toLocaleString();
         }
 
-        // In generateTickets() – after pushing all tickets
-        // Render preview as before...
+        // Generate tickets
+        function generateTickets() {
+            updateSummary();
+            const preview = document.getElementById('preview');
+            const printable = document.getElementById('printable');
+            preview.innerHTML = '';
+            printable.innerHTML = '';
 
-        function renderPrintable(callback = () => {}) {
-            const container = document.getElementById("tickets-container");
-            container.innerHTML = "";
-            let rendered = 0;
+            const typeSelect = document.getElementById('ticketType');
+            const type = typeSelect.value;
+            const basePrice = parseInt(typeSelect.options[typeSelect.selectedIndex].dataset.price);
+            const qty = parseInt(document.getElementById('quantity').value);
+            const discType = document.getElementById('discountType').value;
+            const discValue = parseFloat(document.getElementById('discountValue').value) || 0;
+            const eventName = document.getElementById('eventName').value;
+            const venue = document.getElementById('venue').value;
+            const eventDateInput = document.getElementById('eventDate').value;
+            const eventDate = new Date(eventDateInput).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-            generatedTickets.forEach((t, index) => {
-                const wrapper = document.createElement("div");
-                wrapper.innerHTML = generateTicketHTML(t, false);
-                container.appendChild(wrapper.firstElementChild);
+            const subtotal = basePrice * qty;
+            let discountAmt = 0;
+            if (discType === 'flat') discountAmt = discValue;
+            else if (discType === 'percent') discountAmt = subtotal * (discValue / 100);
+            const finalTotal = subtotal - discountAmt;
+            const finalPerTicket = finalTotal / qty;
 
-                createQR(`qr-${t.id}`, t.qrData, () => {
-                    rendered++;
-                    if (rendered === generatedTickets.length) {
-                        document.getElementById("print-date").textContent = new Date().toLocaleDateString('en-IN');
-                        document.getElementById("print-total").textContent = `₹${generatedTickets.reduce((s, t) => s + t.finalPrice, 0).toLocaleString('en-IN')}`;
-                        callback();
-                    }
+            // Get or init sequential number
+            let nextSeq = parseInt(localStorage.getItem('nextSeq')) || 1;
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+            for (let i = 1; i <= qty; i++) {
+                const ticketId = `TCK${dateStr}-${String(nextSeq++).padStart(4, '0')}`;
+                const serial = `${i}/${qty}`;
+                const timeIso = new Date().toISOString();
+                const qrContent = `EVENT=${eventName}|TYPE=${type}|ID=${ticketId}|PRICE=${Math.round(finalPerTicket)}|TIME=${timeIso}|QTY=${qty}|SERIAL=${serial}`;
+
+                // Create ticket HTML
+                const ticketHTML = `
+                    <div class="ticket w-[80mm] h-[48mm] border border-blue-500 bg-gradient-to-b from-zinc-100 to-blue-50 text-black p-2 flex flex-col justify-between relative overflow-hidden">
+                        <div class="top flex justify-between items-start">
+                            <span class="text-xs">${eventName}</span>
+                            <span class="font-bold text-lg">${type}</span>
+                            <span class="text-2xl font-bold text-blue-600">₹${Math.round(finalPerTicket).toLocaleString()}</span>
+                        </div>
+                        <div class="middle text-center text-sm">
+                            ${venue} • ${eventDate}
+                        </div>
+                        <hr class="border-t border-dashed border-black my-1">
+                        <div class="bottom flex justify-between items-center">
+                            <span class="text-xs">${ticketId}</span>
+                            <span class="font-bold text-xl text-center flex-1">${serial}</span>
+                            <div id="qr-${i}" class="w-[56px] h-[56px]"></div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full h-[5mm] bg-red-500 text-white text-xs font-bold text-center flex items-center justify-center">
+                            SINGLE ENTRY ONLY • DUPLICATES REJECTED
+                        </div>
+                    </div>
+                `;
+
+                // For preview (scaled)
+                const previewWrapper = document.createElement('div');
+                previewWrapper.classList.add('transform', 'scale-75', 'origin-top-left');
+                previewWrapper.innerHTML = ticketHTML.replace(`id="qr-${i}"`, `id="qr-prev-${i}"`);
+                preview.appendChild(previewWrapper);
+
+                // For printable
+                const printTicket = document.createElement('div');
+                printTicket.innerHTML = ticketHTML;
+                printable.appendChild(printTicket);
+
+                // Generate QR for preview
+                new QRCode(document.getElementById(`qr-prev-${i}`), {
+                    text: qrContent,
+                    width: 56,
+                    height: 56,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
                 });
-            });
-        }
 
-        function printTickets() {
-            if (!generatedTickets.length) return alert("Generate tickets first!");
-
-            const printable = document.getElementById("printable");
-            printable.classList.remove("hidden");
-
-            renderPrintable(() => {
-                setTimeout(() => {
-                    window.focus();
-                    window.print();
-                    setTimeout(() => {
-                        printable.classList.add("hidden");
-                    }, 1500);
-                }, 800); // extra time for layout
-            });
-        }
-
-        function downloadPDF() {
-            if (!generatedTickets.length) return alert("No tickets to export!");
-
-            if (generatedTickets.length > 12) {
-                if (!confirm("Large quantity (PDF may be blank due to browser limits). Continue anyway?")) return;
+                // Generate QR for print
+                new QRCode(document.getElementById(`qr-${i}`), {
+                    text: qrContent,
+                    width: 56,
+                    height: 56,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
             }
 
-            const printable = document.getElementById("printable");
-            printable.classList.remove("hidden");
-
-            renderPrintable(() => {
-                setTimeout(() => {
-                    const opt = {
-                        margin: [8, 8, 8, 8],
-                        filename: `tickets_${new Date().toISOString().slice(0,10)}.pdf`,
-                        image: { type: 'jpeg', quality: 0.95 },
-                        html2canvas: { 
-                            scale: 2.2, 
-                            useCORS: true, 
-                            logging: false,
-                            windowWidth: 794,   // A4 at 96dpi ≈ 794px
-                            windowHeight: 1123
-                        },
-                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                    };
-
-                    html2pdf().set(opt).from(printable).save().then(() => {
-                        printable.classList.add("hidden");
-                    }).catch(err => {
-                        console.error(err);
-                        alert("PDF generation failed – try PRINT → Save as PDF instead.");
-                        printable.classList.add("hidden");
-                    });
-                }, 1200);
-            });
+            // Save nextSeq
+            localStorage.setItem('nextSeq', nextSeq);
         }
 
-        // ... (rest of your script: clearAll, event listeners, onload)
+        // Print function
+        function printTickets() {
+            generateTickets(); // Ensure latest
+            document.getElementById('printable').style.display = 'block';
+            window.print();
+            document.getElementById('printable').style.display = 'none';
+        }
+
+        // PDF function
+        function pdfTickets() {
+            const qty = parseInt(document.getElementById('quantity').value);
+            if (qty > 12) {
+                if (!confirm('For quantities >12, PDF may be blank due to canvas limits. Proceed? If blank, use Print > Save as PDF instead.')) return;
+            }
+            generateTickets(); // Ensure latest
+            const element = document.getElementById('printable');
+            element.style.display = 'block';
+            const opt = {
+                margin: 5,
+                filename: 'tickets.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2.2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().from(element).set(opt).save().then(() => {
+                element.style.display = 'none';
+            });
+        }
     </script>
 </body>
 </html>
